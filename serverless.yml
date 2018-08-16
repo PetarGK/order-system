@@ -1,0 +1,16 @@
+service: order-system 
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  profile: petark
+
+package:
+  exclude:
+    - package-lock.json
+    - README.md
+
+functions:
+  hello:
+    handler: functions/handler.hello
