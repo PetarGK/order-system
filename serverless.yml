@@ -10,6 +10,9 @@ package:
   exclude:
     - package-lock.json
     - README.md
+    - build.sh
+    - buildspec.yml
+    - tests/**
 
 functions:
   hello:
