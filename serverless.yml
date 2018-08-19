@@ -13,4 +13,4 @@ package:
 
 functions:
   hello:
-    handler: functions/handler.hello
+    handler: functions/get-hello.handler
