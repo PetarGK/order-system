@@ -1,5 +1,9 @@
 service: order-system 
 
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-iam-roles-per-function
+
 provider:
   name: aws
   runtime: nodejs8.10
@@ -17,3 +21,10 @@ package:
 functions:
   hello:
     handler: functions/get-hello.handler
+
+  place-order:
+    handler: functions/place-order.handler
+    events:
+      - http:
+          path: /orders
+          method: post   
