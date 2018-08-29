@@ -8,7 +8,7 @@ provider:
   name: aws
   runtime: nodejs8.10
   stage: dev
-
+  profile: petark
 
 package:
   exclude:
