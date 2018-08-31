@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",
+    "chance": "^1.0.16",
     "source-map-support": "^0.4.18"
   }
 }

@@ -3,15 +3,22 @@ service: order-system
 
 # Use the serverless-webpack plugin to transpile ES6
 plugins:
+  - serverless-pseudo-parameters
+  - serverless-iam-roles-per-function  
   - serverless-webpack
   - serverless-offline
 
 # serverless-webpack configuration
 # Enable auto-packing of external modules
 custom:
+  stage: ${opt:stage, self:provider.stage} 
+  serverless-iam-roles-per-function:
+    defaultInherit: true  
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
+
+     
 
 provider:
   name: aws
@@ -29,6 +36,7 @@ provider:
 functions:
   hello:
     handler: functions/hello.handler
+    memorySize: 128
     events:
       - http:
           path: hello
@@ -36,7 +44,22 @@ functions:
 
   place-order:
     handler: functions/place-order.handler
+    memorySize: 128
     events:
       - http:
           path: /orders
           method: post       
+    environment:
+      order_events_stream: order-events-${self:custom.stage}          
+    iamRoleStatements:
+      - Effect: Allow
+        Action: kinesis:PutRecord
+        Resource: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events-${self:custom.stage}
+
+resources:
+  Resources:
+    orderEventsStream:
+      Type: AWS::Kinesis::Stream
+      Properties: 
+        Name: order-events-${self:custom.stage}
+        ShardCount: 1      

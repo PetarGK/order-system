@@ -1,13 +1,17 @@
-import correlationIds from '../lib/correlation-ids'
-import kinesis        from '../lib/kinesis'
-import * as log       from '../lib/log'
-import _              from 'lodash'
+import * as correlationIds from '../lib/correlation-ids'
+import kinesis             from '../lib/kinesis'
+import * as log            from '../lib/log'
+import _                   from 'lodash'
+import ch                  from 'chance'
+
+const chance = ch.Chance();
+const streamName = process.env.order_events_stream;
 
 export const handler = async (event) => {
     const req = JSON.parse(event.body);
     log.debug(`request body is valid JSON`, { requestBody: event.body });
 
-    const userEmail = _.get(event, 'requestContext.authorizer.claims.email');
+    const userEmail = "petar.korudzhiev@gmail.com" //_.get(event, 'requestContext.authorizer.claims.email');
 
     if (!userEmail) {
         log.error('unauthorized request, user email is not provided');
