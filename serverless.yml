@@ -1,30 +1,35 @@
-service: order-system 
+# NOTE: update this with your service name
+service: order-system
 
+# Use the serverless-webpack plugin to transpile ES6
 plugins:
-  - serverless-pseudo-parameters
-  - serverless-iam-roles-per-function
+  - serverless-webpack
+  - serverless-offline
+
+# serverless-webpack configuration
+# Enable auto-packing of external modules
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
 
 provider:
   name: aws
   runtime: nodejs8.10
   stage: dev
+  region: us-east-1
   profile: petark
-
-package:
-  exclude:
-    - package-lock.json
-    - README.md
-    - build.sh
-    - buildspec.yml
-    - tests/**
+  # To load environment variables externally
+  # rename env.example to env.yml and uncomment
+  # the following line. Also, make sure to not
+  # commit your env.yml.
+  #
+  #environment: ${file(env.yml):${self:provider.stage}}
 
 functions:
   hello:
-    handler: functions/get-hello.handler
-
-  place-order:
-    handler: functions/place-order.handler
+    handler: handler.hello
     events:
       - http:
-          path: /orders
-          method: post   
+          path: hello
+          method: get

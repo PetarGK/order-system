@@ -1,33 +1,32 @@
 {
   "name": "order-system",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
-  "dependencies": {
-    "bluebird": "^3.5.1"
-  },
-  "devDependencies": {
-    "chai": "^4.1.2",
-    "lodash": "^4.17.10",
-    "mocha": "^5.2.0",
-    "serverless": "^1.30.0",
-    "serverless-iam-roles-per-function": "^1.0.2",
-    "serverless-pseudo-parameters": "^2.1.0"
-  },
+  "version": "1.1.0",
+  "description": "A Node.js starter for the Serverless Framework with async/await and unit test support",
+  "main": "handler.js",
   "scripts": {
-    "integration-tests": "env TEST_MODE=handler ./node_modules/.bin/mocha tests/test_cases --reporter spec --retries 3 --timeout 10000"
+    "test": "jest"
   },
+  "author": "",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PetarGK/order-system.git"
+    "url": "https://github.com/AnomalyInnovations/serverless-nodejs-starter.git"
   },
-  "author": "Petar Korudzhiev",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/PetarGK/order-system/issues"
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-source-map-support": "^1.0.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-stage-3": "^6.24.1",
+    "jest": "^21.2.1",
+    "serverless-offline": "^3.25.6",
+    "serverless-webpack": "^5.1.0",
+    "webpack": "^4.16.2",
+    "webpack-node-externals": "^1.6.0"
   },
-  "homepage": "https://github.com/PetarGK/order-system#readme"
+  "dependencies": {
+    "babel-runtime": "^6.26.0",
+    "source-map-support": "^0.4.18"
+  }
 }
