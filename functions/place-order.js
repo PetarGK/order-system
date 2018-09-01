@@ -7,14 +7,15 @@ import ch                  from 'chance'
 const chance = ch.Chance();
 const streamName = process.env.order_events_stream;
 
-export const handler = async (event) => {
-    const req = JSON.parse(event.body);
-    log.debug(`request body is valid JSON`, { requestBody: event.body });
+export async function handler(event, context) {
+    const req = JSON.parse(event.body)
 
-    const userEmail = "petar.korudzhiev@gmail.com" //_.get(event, 'requestContext.authorizer.claims.email');
+    log.debug(`request body is valid JSON`, { requestBody: event.body })
+
+    const userEmail = _.get(event, 'requestContext.authorizer.claims.email')
 
     if (!userEmail) {
-        log.error('unauthorized request, user email is not provided');
+        log.error('unauthorized request, user email is not provided')
     
         return {
             statusCode: 401,
@@ -29,7 +30,7 @@ export const handler = async (event) => {
     correlationIds.set('restaurant-name', restaurantName);
     correlationIds.set('user-email', userEmail);
     
-    log.debug(`placing order...`, { orderId, restaurantName, userEmail });
+    log.debug(`placing order...`, { orderId, restaurantName, userEmail })
 
     const data = {
         orderId,
@@ -46,7 +47,7 @@ export const handler = async (event) => {
 
     await kinesis.putRecord(kinesisReq);
 
-    log.debug(`published event into Kinesis`, { eventName: 'order_placed' });
+    log.debug(`published event into Kinesis`, { eventName: 'order_placed' })
 
     return {
         statusCode: 200,

@@ -4,7 +4,8 @@
   "description": "A Node.js starter for the Serverless Framework with async/await and unit test support",
   "main": "handler.js",
   "scripts": {
-    "test": "jest"
+    "integration-test": "env TEST_MODE=handler ./node_modules/.bin/mocha --require babel-polyfill --require babel-register tests/test_cases --reporter spec --retries 3 --timeout 10000",
+    "acceptance-test": "env TEST_MODE=http TEST_ROOT=https://2vc1xdwhkb.execute-api.us-east-1.amazonaws.com/dev ./node_modules/.bin/mocha --require babel-polyfill --require babel-register tests/test_cases --reporter spec --retries 3 --timeout 10000"
   },
   "author": "",
   "license": "MIT",
@@ -18,10 +19,13 @@
     "babel-loader": "^7.1.4",
     "babel-plugin-source-map-support": "^1.0.0",
     "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-stage-3": "^6.24.1",
-    "jest": "^21.2.1",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
     "lodash": "^4.17.10",
+    "mocha": "^5.2.0",
     "serverless": "^1.30.3",
     "serverless-iam-roles-per-function": "^1.0.3",
     "serverless-offline": "^3.25.6",

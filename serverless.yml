@@ -34,14 +34,6 @@ provider:
   #environment: ${file(env.yml):${self:provider.stage}}
 
 functions:
-  hello:
-    handler: functions/hello.handler
-    memorySize: 128
-    events:
-      - http:
-          path: hello
-          method: get
-
   place-order:
     handler: functions/place-order.handler
     memorySize: 128
