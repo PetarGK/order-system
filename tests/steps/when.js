@@ -21,6 +21,33 @@ async function viaHandler(event, functionName) {
     }
 }
 
+async function place_order_invalid_request() {
+  const request = {
+    body: undefined
+  }
+
+  return await viaHandler(request, 'place-order')
+}
+
+async function place_order_invalid_restaurantName() {
+  const request = {
+    body: JSON.stringify({
+      "restaurantName": undefined
+    })
+  }
+
+  return await viaHandler(request, 'place-order')
+}
+
+async function place_order_unauthorized() {
+  const request = {
+    body: JSON.stringify({
+      "restaurantName": "test restaurant"
+    })
+  }
+
+  return await viaHandler(request, 'place-order')
+}
 
 async function place_order_authorized() {
     const request = {
@@ -39,19 +66,9 @@ async function place_order_authorized() {
     return await viaHandler(request, 'place-order')
 }
 
-async function place_order_unauthorized() {
-  const request = {
-    body: JSON.stringify({
-      "restaurantName": "test restaurant"
-    })
-  }
-
-  return await viaHandler(request, 'place-order')
-}
-
-
-
 export {
-   place_order_authorized,
-   place_order_unauthorized
+  place_order_invalid_request,
+  place_order_invalid_restaurantName,
+  place_order_authorized,
+  place_order_unauthorized
 }

@@ -9,9 +9,17 @@ const chance = ch.Chance();
 const streamName = process.env.order_events_stream;
 
 export async function handler(event, context) {
-    const req = JSON.parse(event.body)
+    if (!event.body) {
+        return response.badRequest({ message: "Invalid request" })
+    }
+
+    const request = JSON.parse(event.body)
 
     log.debug(`request body is valid JSON`, { requestBody: event.body })
+
+    if (!request.restaurantName) {
+        return response.badRequest({ message: "Invalid restaurantName name" })
+    }
 
     const userEmail = _.get(event, 'requestContext.authorizer.claims.email')
 
@@ -21,7 +29,7 @@ export async function handler(event, context) {
         return response.unAuthorized({ message: "unauthorized" })
     }    
 
-    const restaurantName = req.restaurantName;
+    const restaurantName = request.restaurantName;
     const orderId = chance.guid();    
 
     correlationIds.set('order-id', orderId);
