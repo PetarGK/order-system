@@ -2,6 +2,7 @@ import _   from 'lodash'
 import URL from 'url'
 import Promise from 'bluebird'
 import superagentPromise from 'superagent-promise'
+import aws4 from '../../lib/aws4'
 
 const http    = superagentPromise(require('superagent'), Promise);
 const APP_ROOT = '../..';
@@ -9,10 +10,7 @@ const mode    = process.env.TEST_MODE;
 
 function respondFrom(httpRes) {
   const contentType = _.get(httpRes, 'headers.content-type', 'application/json');
-  const body = 
-    contentType === 'application/json'
-      ? httpRes.body
-      : httpRes.text;
+  const body = contentType === 'application/json' ? httpRes.body : httpRes.text;
 
   return { 
     statusCode: httpRes.status,
