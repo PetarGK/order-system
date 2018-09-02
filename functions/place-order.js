@@ -1,6 +1,7 @@
 import * as correlationIds from '../lib/correlation-ids'
 import kinesis             from '../lib/kinesis'
 import * as log            from '../lib/log'
+import * as response       from '../lib/response'
 import _                   from 'lodash'
 import ch                  from 'chance'
 
@@ -17,10 +18,7 @@ export async function handler(event, context) {
     if (!userEmail) {
         log.error('unauthorized request, user email is not provided')
     
-        return {
-            statusCode: 401,
-            body: "unauthorized"                    
-        }
+        return response.unAuthorized({ message: "unauthorized" })
     }    
 
     const restaurantName = req.restaurantName;
@@ -49,8 +47,5 @@ export async function handler(event, context) {
 
     log.debug(`published event into Kinesis`, { eventName: 'order_placed' })
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ orderId })
-    }
+    return response.success({ orderId })
 }
