@@ -17,6 +17,7 @@ describe(`When we invoke the POST /place_order endpoint`, function() {
     expect(response.body).to.not.be.null
 
     const body = response.body
+    console.log(body);
     expect(body.message).to.not.be.null     
     expect(body.message).to.equal('Invalid request')
   })
