@@ -122,11 +122,12 @@ async function place_order_unauthorized() {
   return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request);
 }
 
-async function place_order_authorized() {
+async function place_order_authorized(user) {
     const request = {
       body: JSON.stringify({
         "restaurantName": "test restaurant"
-      })
+      }),
+      auth: user.idToken
     }
 
     if (mode === 'handler') {
