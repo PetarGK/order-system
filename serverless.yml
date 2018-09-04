@@ -33,7 +33,7 @@ functions:
           path: /orders
           method: post  
           authorizer:
-            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_g6z02b6NB        
+            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_HLwEEmCxW        
     environment:
       order_events_stream: order-events-${self:custom.stage}          
     iamRoleStatements:
@@ -48,4 +48,3 @@ resources:
       Properties: 
         Name: order-events-${self:custom.stage}
         ShardCount: 1      
-

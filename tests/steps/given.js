@@ -19,7 +19,7 @@ async function an_authenticated_user() {
   const lastName  = chance.last()
   const username  = `test-${chance.string({length: 8})}`
   const password  = random_password()
-  const email     = `${firstName}-${lastName}@test.com`
+  const email     = `${firstName}.${lastName}@test.com`
 
   const createReq = {
     UserPoolId        : userpoolId,

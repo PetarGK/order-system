@@ -1,14 +1,16 @@
-import * as correlationIds from '../lib/correlation-ids'
-import kinesis             from '../lib/kinesis'
-import * as log            from '../lib/log'
-import * as response       from '../lib/response'
-import _                   from 'lodash'
-import ch                  from 'chance'
+import * as correlationIds        from '../lib/correlation-ids'
+import kinesis                    from '../lib/kinesis'
+import * as log                   from '../lib/log'
+import * as response              from '../lib/response'
+import _                          from 'lodash'
+import ch                         from 'chance'
+import middy                      from 'middy'
+import captureCorrelationIds      from '../middleware/capture-correlation-ids'
 
 const chance = ch.Chance();
 const streamName = process.env.order_events_stream;
 
-export async function handler(event, context) {
+const handler = middy(async (event, context) => {
     if (!event.body) {
         return response.badRequest({ message: "Invalid request" })
     }
@@ -56,4 +58,6 @@ export async function handler(event, context) {
     log.debug(`published event into Kinesis`, { eventName: 'order_placed' })
 
     return response.success({ orderId })
-}
+}).use(captureCorrelationIds({ sampleDebugLogRate: 0.01 }))
+
+export { handler }  
