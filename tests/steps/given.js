@@ -17,9 +17,9 @@ async function an_authenticated_user() {
 
   const firstName = chance.first()
   const lastName  = chance.last()
-  const username  = `test-${firstName}-${lastName}-${chance.string({length: 8})}`
+  const username  = `test-${chance.string({length: 8})}`
   const password  = random_password()
-  const email     = `${firstName}-${lastName}@big-mouth.com`
+  const email     = `${firstName}-${lastName}@test.com`
 
   const createReq = {
     UserPoolId        : userpoolId,
@@ -32,6 +32,7 @@ async function an_authenticated_user() {
       { Name: "email",       Value: email }
     ]
   }
+
   await cognito.adminCreateUser(createReq).promise()
 
   console.log(`[${username}] - user is created`)

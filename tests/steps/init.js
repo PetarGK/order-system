@@ -13,8 +13,8 @@ async function init() {
   process.env.STAGE = 'dev'
   process.env.log_level = 'DEBUG'
   process.env.order_events_stream = "order-events-dev"
-  process.env.cognito_user_pool_id = "us-east-1_YRwAkFUJM"
-  process.env.cognito_client_id = "3a46j1vmh8eovn845af9pt7lr4"
+  process.env.cognito_user_pool_id = "us-east-1_g6z02b6NB"
+  process.env.cognito_client_id = "5gguo2l80n7n0okqgp4cm23eql"
 
   await aws4.init();
 

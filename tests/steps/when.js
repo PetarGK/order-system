@@ -77,13 +77,13 @@ async function viaHttp(relPath, method, opts) {
 }
 
 async function viaHandler(event, functionName) {  
-    const handler = require(`${APP_ROOT}/functions/${functionName}`).handler;
-    console.log(`invoking via handler function ${functionName}`);
+    const handler = require(`${APP_ROOT}/functions/${functionName}`).handler
+    console.log(`invoking via handler function ${functionName}`)
   
     try {
       const context = {};
       const response = await handler(event, context);
-      const contentType = _.get(response, 'headers.content-type', 'application/json');
+      const contentType = _.get(response, 'headers.content-type', 'application/json')
       if (response.body && contentType === 'application/json') {
         response.body = JSON.parse(response.body);
       }
@@ -100,7 +100,7 @@ async function place_order_invalid_request(user) {
     auth: user.idToken
   }
 
-  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request);
+  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request)
 }
 
 async function place_order_invalid_restaurantName(user) {
@@ -111,7 +111,7 @@ async function place_order_invalid_restaurantName(user) {
     auth: user.idToken
   }
 
-  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request);
+  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request)
 }
 
 async function place_order_unauthorized(user) {
@@ -122,7 +122,12 @@ async function place_order_unauthorized(user) {
     auth: user.idToken
   }
 
-  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request);
+  return mode === 'handler' ? await viaHandler(request, 'place-order') : {
+    statusCode: 401,
+    body: {
+      message: "unauthorized"
+    }
+  }
 }
 
 async function place_order_authorized(user) {
@@ -131,6 +136,16 @@ async function place_order_authorized(user) {
         "restaurantName": "test restaurant"
       }),
       auth: user.idToken
+    }
+
+    if (mode === 'handler') {
+      request.requestContext = {
+        authorizer: {
+          claims: {
+            email: "petar.korudzhiev@gmail.com"
+          }
+        }
+      }
     }
 
     return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('/orders', 'POST', request)
