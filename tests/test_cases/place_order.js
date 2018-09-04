@@ -7,13 +7,19 @@ import exp from 'chai'
 const expect = exp.expect;
 
 describe(`When we invoke the POST /place_order endpoint`, function() {
+  let user
   before(async function() {
     await init()
+    user = await given.an_authenticated_user()
+  })
+
+  after(async function() {
+    await tearDown.an_authenticated_user(user)
   })
 
   it(`Should return invalid request`,async function() {
 
-    const response = await when.place_order_invalid_request()
+    const response = await when.place_order_invalid_request(user)
 
     expect(response.statusCode).to.equal(400)
     expect(response.body).to.not.be.null
@@ -26,13 +32,19 @@ describe(`When we invoke the POST /place_order endpoint`, function() {
 })
 
 describe(`When we invoke the POST /place_order endpoint`, function() {
+  let user
   before(async function() {
     await init()
+    user = await given.an_authenticated_user()
+  })
+
+  after(async function() {
+    await tearDown.an_authenticated_user(user)
   })
 
   it(`Should return invalid restaurantName`,async function() {
 
-    const response = await when.place_order_invalid_restaurantName()
+    const response = await when.place_order_invalid_restaurantName(user)
 
     expect(response.statusCode).to.equal(400)
     expect(response.body).to.not.be.null
@@ -44,13 +56,19 @@ describe(`When we invoke the POST /place_order endpoint`, function() {
 })
 
 describe(`When we invoke the POST /place_order endpoint`, function() {
+  let user
   before(async function() {
     await init()
+    user = await given.an_authenticated_user()
+  })
+
+  after(async function() {
+    await tearDown.an_authenticated_user(user)
   })
 
   it(`Should return unauthorized`,async function() {
 
-    const response = await when.place_order_unauthorized()
+    const response = await when.place_order_unauthorized(user)
 
     expect(response.statusCode).to.equal(401)
     expect(response.body).to.not.be.null

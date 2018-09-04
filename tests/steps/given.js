@@ -13,7 +13,7 @@ function random_password() {
 
 async function an_authenticated_user() {
   const userpoolId = process.env.cognito_user_pool_id
-  const clientId = process.env.cognito_server_client_id
+  const clientId = process.env.cognito_client_id
 
   const firstName = chance.first()
   const lastName  = chance.last()

@@ -94,29 +94,32 @@ async function viaHandler(event, functionName) {
     }
 }
 
-async function place_order_invalid_request() {
+async function place_order_invalid_request(user) {
   const request = {
-    body: ""
+    body: "",
+    auth: user.idToken
   }
 
   return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request);
 }
 
-async function place_order_invalid_restaurantName() {
+async function place_order_invalid_restaurantName(user) {
   const request = {
     body: JSON.stringify({
       "restaurantName": ""
-    })
+    }),
+    auth: user.idToken
   }
 
   return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request);
 }
 
-async function place_order_unauthorized() {
+async function place_order_unauthorized(user) {
   const request = {
     body: JSON.stringify({
       "restaurantName": "test restaurant"
-    })
+    }),
+    auth: user.idToken
   }
 
   return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request);
@@ -130,20 +133,7 @@ async function place_order_authorized(user) {
       auth: user.idToken
     }
 
-    if (mode === 'handler') {
-      request.requestContext = {
-        authorizer: {
-          claims: {
-            email: "petar.korudzhiev@gmail.com"
-          }
-        }
-      }
-
-      return await viaHandler(request, 'place-order') 
-    } 
-    else {
-      return await viaHttp('/orders', 'POST', request)
-    }
+    return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('/orders', 'POST', request)
 }
 
 export {
