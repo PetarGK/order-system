@@ -1,0 +1,16 @@
+import AWS from 'aws-sdk'
+AWS.config.region = 'us-east-1'
+
+const cognito = new AWS.CognitoIdentityServiceProvider();
+
+async function an_authenticated_user(user) {
+  const req = {
+    UserPoolId: process.env.cognito_user_pool_id,
+    Username: user.username
+  }
+  await cognito.adminDeleteUser(req).promise()
+  
+  console.log(`[${user.username}] - user deleted`)
+}
+
+export { an_authenticated_user }

@@ -1,19 +1,51 @@
-service: order-system 
+service: order-system
 
+frameworkVersion: ">=1.2.0 <2.0.0"
+
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-iam-roles-per-function  
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  stage: ${opt:stage, self:provider.stage} 
+  serverless-iam-roles-per-function:
+    defaultInherit: true  
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+    
 provider:
   name: aws
   runtime: nodejs8.10
   stage: dev
-
-
-package:
-  exclude:
-    - package-lock.json
-    - README.md
-    - build.sh
-    - buildspec.yml
-    - tests/**
+  region: us-east-1
+  profile: petark
 
 functions:
-  hello:
-    handler: functions/get-hello.handler
+  place-order:
+    handler: functions/place-order.handler
+    memorySize: 128
+    events:
+      - http:
+          path: /orders
+          method: post  
+          authorizer:
+            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_g6z02b6NB        
+    environment:
+      order_events_stream: order-events-${self:custom.stage}          
+    iamRoleStatements:
+      - Effect: Allow
+        Action: kinesis:PutRecord
+        Resource: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events-${self:custom.stage}
+
+resources:
+  Resources:
+    orderEventsStream:
+      Type: AWS::Kinesis::Stream
+      Properties: 
+        Name: order-events-${self:custom.stage}
+        ShardCount: 1      
+

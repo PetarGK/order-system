@@ -1,39 +1,159 @@
-'use strict';
+import _   from 'lodash'
+import URL from 'url'
+import Promise from 'bluebird'
+import superagentPromise from 'superagent-promise'
+import aws4 from '../../lib/aws4'
 
-const APP_ROOT = '../../';
+const http    = superagentPromise(require('superagent'), Promise);
+const APP_ROOT = '../..';
+const mode    = process.env.TEST_MODE;
 
-const _       = require('lodash');
-const Promise = require("bluebird");
+function respondFrom(httpRes) {
+  const contentType = _.get(httpRes, 'headers.content-type', 'application/json');
+  const body = contentType === 'application/json' ? httpRes.body : httpRes.text;
 
-let viaHandler = (event, functionName) => {  
-    let handler = require(`${APP_ROOT}/functions/${functionName}`).handler;
-    console.log(`invoking via handler function ${functionName}`);
-  
-    return new Promise((resolve, reject) => {
-      let context = {};
-      let callback = function (err, response) {
-        if (err) {
-          reject(err);
-        } else {
-          let contentType = _.get(response, 'headers.content-type', 'application/json');
-          if (response.body && contentType === 'application/json') {
-            response.body = JSON.parse(response.body);
-          }
-  
-          resolve(response);
-        }
-      };
-  
-      handler(event, context, callback);
-    });
+  return { 
+    statusCode: httpRes.status,
+    body: body,
+    headers: httpRes.headers
+  };
 }
 
-let we_invoke_get_hello = async function () {
-    let res = await viaHandler({}, 'get-hello');
-  
-    return res;
-};
+function signHttpRequest(url, httpReq) {
+  const urlData = URL.parse(url);
+  const opts = {
+    host: urlData.hostname, 
+    path: urlData.pathname
+  };
 
-module.exports = {
-    we_invoke_get_hello
-};
+  aws4.sign(opts);
+
+  httpReq
+    .set('Host', opts.headers['Host'])
+    .set('X-Amz-Date', opts.headers['X-Amz-Date'])
+    .set('Authorization', opts.headers['Authorization']);
+
+  if (opts.headers['X-Amz-Security-Token']) {
+    httpReq.set('X-Amz-Security-Token', opts.headers['X-Amz-Security-Token']);
+  }
+}
+
+async function viaHttp(relPath, method, opts) {
+  const root = process.env.TEST_ROOT;
+  const url = `${root}/${relPath}`;
+  console.log(`invoking via HTTP ${method} ${url} ${JSON.stringify(opts)}`);
+
+  try {
+    const httpReq = http(method, url);
+
+    const body = _.get(opts, "body");
+    if (body) {      
+      httpReq.send(body);
+    }
+
+    if (_.get(opts, "iam_auth", false) === true) {
+      signHttpRequest(url, httpReq);
+    }
+
+    const authHeader = _.get(opts, "auth");
+    if (authHeader) {
+      httpReq.set('Authorization', authHeader);
+    }
+
+    const response = await httpReq;
+
+    return respondFrom(response);
+  } catch (err) {
+    if (err.status) {
+      return {
+        statusCode: err.status,
+        headers: err.response.headers,
+        body: err.response.body
+      };
+    } else {
+      throw err;
+    }
+  }
+}
+
+async function viaHandler(event, functionName) {  
+    const handler = require(`${APP_ROOT}/functions/${functionName}`).handler
+    console.log(`invoking via handler function ${functionName}`)
+  
+    try {
+      const context = {};
+      const response = await handler(event, context);
+      const contentType = _.get(response, 'headers.content-type', 'application/json')
+      if (response.body && contentType === 'application/json') {
+        response.body = JSON.parse(response.body);
+      }
+      return response;
+    }
+    catch(err) {
+      return err;
+    }
+}
+
+async function place_order_invalid_request(user) {
+  const request = {
+    body: "",
+    auth: user.idToken
+  }
+
+  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request)
+}
+
+async function place_order_invalid_restaurantName(user) {
+  const request = {
+    body: JSON.stringify({
+      "restaurantName": ""
+    }),
+    auth: user.idToken
+  }
+
+  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request)
+}
+
+async function place_order_unauthorized(user) {
+  const request = {
+    body: JSON.stringify({
+      "restaurantName": "test restaurant"
+    }),
+    auth: user.idToken
+  }
+
+  return mode === 'handler' ? await viaHandler(request, 'place-order') : {
+    statusCode: 401,
+    body: {
+      message: "unauthorized"
+    }
+  }
+}
+
+async function place_order_authorized(user) {
+    const request = {
+      body: JSON.stringify({
+        "restaurantName": "test restaurant"
+      }),
+      auth: user.idToken
+    }
+
+    if (mode === 'handler') {
+      request.requestContext = {
+        authorizer: {
+          claims: {
+            email: "petar.korudzhiev@gmail.com"
+          }
+        }
+      }
+    }
+
+    return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('/orders', 'POST', request)
+}
+
+export {
+  place_order_invalid_request,
+  place_order_invalid_restaurantName,
+  place_order_authorized,
+  place_order_unauthorized
+}
