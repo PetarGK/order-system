@@ -5,11 +5,12 @@ import * as response              from '../lib/response'
 import _                          from 'lodash'
 import ch                         from 'chance'
 import middy                      from 'middy'
+import { ssm }                    from 'middy/middlewares'
 import co                         from 'co'
 import captureCorrelationIds      from '../middleware/capture-correlation-ids'
 
 const chance = ch.Chance();
-const streamName = process.env.order_events_stream;
+const STAGE     = process.env.STAGE;
 
 const handler = middy(co.wrap(function* (event, context, cb) {
     if (!event.body) {
@@ -51,7 +52,7 @@ const handler = middy(co.wrap(function* (event, context, cb) {
     const kinesisReq = {
         Data: JSON.stringify(data), // the SDK would base64 encode this for us
         PartitionKey: orderId,
-        StreamName: streamName
+        StreamName: context.order_events_stream
     }
 
     yield kinesis.putRecord(kinesisReq);
@@ -60,5 +61,13 @@ const handler = middy(co.wrap(function* (event, context, cb) {
 
     cb(null, response.success({ orderId }))
 })).use(captureCorrelationIds({ sampleDebugLogRate: 0.01 }))
+   .use(ssm({
+        cache: true,
+        cacheExpiryInMillis: 3 * 60 * 1000, // 3 mins
+        setToContext: true,
+        names: {
+            order_events_stream: `/order-system/${STAGE}/order_events_stream`
+        }
+    }))
 
 export { handler }  

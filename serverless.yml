@@ -10,6 +10,9 @@ plugins:
 
 custom:
   stage: ${opt:stage, self:provider.stage} 
+  logLevel:
+    prod: WARN
+    default: DEBUG  
   serverless-iam-roles-per-function:
     defaultInherit: true  
   webpack:
@@ -23,6 +26,9 @@ provider:
   stage: dev
   region: us-east-1
   profile: petark
+  environment:
+    log_level: ${self:custom.logLevel.${self:custom.stage}, self:custom.logLevel.default}  
+    STAGE: ${self:custom.stage}  
 
 functions:
   place-order:
@@ -33,13 +39,15 @@ functions:
           path: /orders
           method: post  
           authorizer:
-            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_HLwEEmCxW        
-    environment:
-      order_events_stream: order-events-${self:custom.stage}          
+            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/${ssm:/order-system/${self:custom.stage}/cognito_user_pool_id}        
+    environment:        
     iamRoleStatements:
       - Effect: Allow
         Action: kinesis:PutRecord
-        Resource: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events-${self:custom.stage}
+        Resource: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events-${self:custom.stage} 
+      - Effect: Allow
+        Action: ssm:GetParameters*
+        Resource: arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/order-system/${self:custom.stage}/*        
 
 resources:
   Resources:

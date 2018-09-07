@@ -5,7 +5,7 @@
   "main": "handler.js",
   "scripts": {
     "integration-test": "env TEST_MODE=handler ./node_modules/.bin/mocha --require babel-polyfill --require babel-register tests/test_cases --reporter spec --retries 3 --timeout 10000",
-    "acceptance-test": "env TEST_MODE=http TEST_ROOT=https://4w00onoqzb.execute-api.us-east-1.amazonaws.com/dev ./node_modules/.bin/mocha --require babel-polyfill --require babel-register tests/test_cases --reporter spec --retries 3 --timeout 10000"
+    "acceptance-test": "env TEST_MODE=http TEST_ROOT=https://gbhonhn2eh.execute-api.us-east-1.amazonaws.com/dev ./node_modules/.bin/mocha --require babel-polyfill --require babel-register tests/test_cases --reporter spec --retries 3 --timeout 10000"
   },
   "author": "",
   "license": "MIT",
