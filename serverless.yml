@@ -54,5 +54,5 @@ resources:
     orderEventsStream:
       Type: AWS::Kinesis::Stream
       Properties: 
-        Name: order-events-${self:custom.stage}
+        Name: ${ssm:/order-system/${self:custom.stage}/order_events_stream}
         ShardCount: 1      
