@@ -5,14 +5,15 @@ import * as response              from '../lib/response'
 import _                          from 'lodash'
 import ch                         from 'chance'
 import middy                      from 'middy'
+import co                         from 'co'
 import captureCorrelationIds      from '../middleware/capture-correlation-ids'
 
 const chance = ch.Chance();
 const streamName = process.env.order_events_stream;
 
-const handler = middy(async (event, context) => {
+const handler = middy(co.wrap(function* (event, context, cb) {
     if (!event.body) {
-        return response.badRequest({ message: "Invalid request" })
+        cb(null, response.badRequest({ message: "Invalid request" }))
     }
 
     const request = JSON.parse(event.body)
@@ -20,7 +21,7 @@ const handler = middy(async (event, context) => {
     log.debug(`request body is valid JSON`, { requestBody: event.body })
 
     if (!request.restaurantName) {
-        return response.badRequest({ message: "Invalid restaurantName name" })
+        cb(null, response.badRequest({ message: "Invalid restaurantName name" }))
     }
 
     const userEmail = _.get(event, 'requestContext.authorizer.claims.email')
@@ -28,7 +29,7 @@ const handler = middy(async (event, context) => {
     if (!userEmail) {
         log.error('unauthorized request, user email is not provided')
     
-        return response.unAuthorized({ message: "unauthorized" })
+        cb(null, response.unAuthorized({ message: "unauthorized" }))
     }    
 
     const restaurantName = request.restaurantName;
@@ -53,11 +54,11 @@ const handler = middy(async (event, context) => {
         StreamName: streamName
     }
 
-    await kinesis.putRecord(kinesisReq);
+    yield kinesis.putRecord(kinesisReq);
 
     log.debug(`published event into Kinesis`, { eventName: 'order_placed' })
 
-    return response.success({ orderId })
-}).use(captureCorrelationIds({ sampleDebugLogRate: 0.01 }))
+    cb(null, response.success({ orderId }))
+})).use(captureCorrelationIds({ sampleDebugLogRate: 0.01 }))
 
 export { handler }  

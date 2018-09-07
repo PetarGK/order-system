@@ -3,6 +3,7 @@ import URL from 'url'
 import Promise from 'bluebird'
 import superagentPromise from 'superagent-promise'
 import aws4 from '../../lib/aws4'
+import co  from 'co'
 
 const http    = superagentPromise(require('superagent'), Promise);
 const APP_ROOT = '../..';
@@ -38,7 +39,7 @@ function signHttpRequest(url, httpReq) {
   }
 }
 
-async function viaHttp(relPath, method, opts) {
+const viaHttp = co.wrap(function* (relPath, method, opts) {
   const root = process.env.TEST_ROOT;
   const url = `${root}/${relPath}`;
   console.log(`invoking via HTTP ${method} ${url} ${JSON.stringify(opts)}`);
@@ -60,7 +61,7 @@ async function viaHttp(relPath, method, opts) {
       httpReq.set('Authorization', authHeader);
     }
 
-    const response = await httpReq;
+    const response = yield httpReq;
 
     return respondFrom(response);
   } catch (err) {
@@ -74,36 +75,41 @@ async function viaHttp(relPath, method, opts) {
       throw err;
     }
   }
-}
+})
 
-async function viaHandler(event, functionName) {  
-    const handler = require(`${APP_ROOT}/functions/${functionName}`).handler
-    console.log(`invoking via handler function ${functionName}`)
-  
-    try {
-      const context = {};
-      const response = await handler(event, context);
-      const contentType = _.get(response, 'headers.content-type', 'application/json')
-      if (response.body && contentType === 'application/json') {
-        response.body = JSON.parse(response.body);
+const viaHandler = (event, functionName) => {  
+  let handler = require(`${APP_ROOT}/functions/${functionName}`).handler;
+  console.log(`invoking via handler function ${functionName}`);
+
+  return new Promise((resolve, reject) => {
+    let context = {};
+    let callback = function (err, response) {
+      if (err) {
+        reject(err);
+      } else {
+        let contentType = _.get(response, 'headers.content-type', 'application/json');
+        if (response.body && contentType === 'application/json') {
+          response.body = JSON.parse(response.body);
+        }
+
+        resolve(response);
       }
-      return response;
-    }
-    catch(err) {
-      return err;
-    }
+    };
+
+    handler(event, context, callback);
+  });
 }
 
-async function place_order_invalid_request(user) {
+const place_order_invalid_request = co.wrap(function* (user) {
   const request = {
     body: "",
     auth: user.idToken
   }
 
-  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request)
-}
+  return mode === 'handler' ? yield viaHandler(request, 'place-order') : yield viaHttp('orders', 'POST', request)
+})
 
-async function place_order_invalid_restaurantName(user) {
+const place_order_invalid_restaurantName = co.wrap(function* (user) {
   const request = {
     body: JSON.stringify({
       "restaurantName": ""
@@ -111,10 +117,10 @@ async function place_order_invalid_restaurantName(user) {
     auth: user.idToken
   }
 
-  return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('orders', 'POST', request)
-}
+  return mode === 'handler' ? yield viaHandler(request, 'place-order') : yield viaHttp('orders', 'POST', request)
+})
 
-async function place_order_unauthorized(user) {
+const place_order_unauthorized = co.wrap(function* (user) {
   const request = {
     body: JSON.stringify({
       "restaurantName": "test restaurant"
@@ -122,15 +128,15 @@ async function place_order_unauthorized(user) {
     auth: user.idToken
   }
 
-  return mode === 'handler' ? await viaHandler(request, 'place-order') : {
+  return mode === 'handler' ? yield viaHandler(request, 'place-order') : {
     statusCode: 401,
     body: {
       message: "unauthorized"
     }
   }
-}
+})
 
-async function place_order_authorized(user) {
+const place_order_authorized = co.wrap(function* (user) {
     const request = {
       body: JSON.stringify({
         "restaurantName": "test restaurant"
@@ -148,8 +154,8 @@ async function place_order_authorized(user) {
       }
     }
 
-    return mode === 'handler' ? await viaHandler(request, 'place-order') : await viaHttp('/orders', 'POST', request)
-}
+    return mode === 'handler' ? yield viaHandler(request, 'place-order') : yield viaHttp('/orders', 'POST', request)
+})
 
 export {
   place_order_invalid_request,

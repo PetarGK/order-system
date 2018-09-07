@@ -1,9 +1,9 @@
 import aws4 from '../../lib/aws4'
-
+import co  from 'co'
 
 let initialized = false;
 
-async function init() {
+const init = co.wrap(function* () {
   if (initialized) {
     return;
   }
@@ -16,9 +16,9 @@ async function init() {
   process.env.cognito_user_pool_id = "us-east-1_HLwEEmCxW"
   process.env.cognito_client_id = "3n6bcn2u1r4q46i53jkic26stt"
 
-  await aws4.init();
+  yield aws4.init();
 
   initialized = true;
-}
+})
 
 export default init;

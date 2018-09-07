@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk'
-import ch from 'chance'
+import ch  from 'chance'
+import co  from 'co'
 
 AWS.config.region = 'us-east-1';
 
@@ -11,7 +12,7 @@ function random_password() {
   return `${chance.string({ length: 8})}B!gM0uth`;
 }
 
-async function an_authenticated_user() {
+const an_authenticated_user = co.wrap(function* () {
   const userpoolId = process.env.cognito_user_pool_id
   const clientId = process.env.cognito_client_id
 
@@ -33,7 +34,7 @@ async function an_authenticated_user() {
     ]
   }
 
-  await cognito.adminCreateUser(createReq).promise()
+  yield cognito.adminCreateUser(createReq).promise()
 
   console.log(`[${username}] - user is created`)
   
@@ -46,7 +47,7 @@ async function an_authenticated_user() {
       PASSWORD: password
     }
   }
-  const resp = await cognito.adminInitiateAuth(req).promise()
+  const resp = yield cognito.adminInitiateAuth(req).promise()
 
   console.log(`[${username}] - initialised auth flow`)
 
@@ -60,7 +61,7 @@ async function an_authenticated_user() {
       NEW_PASSWORD: random_password()
     }
   }
-  const challengeResp = await cognito.adminRespondToAuthChallenge(challengeReq).promise()
+  const challengeResp = yield cognito.adminRespondToAuthChallenge(challengeReq).promise()
   
   console.log(`[${username}] - responded to auth challenge`)
 
@@ -70,6 +71,6 @@ async function an_authenticated_user() {
     lastName,
     idToken: challengeResp.AuthenticationResult.IdToken
   }
-}
+})
 
 export { an_authenticated_user }
