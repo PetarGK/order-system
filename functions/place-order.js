@@ -26,7 +26,7 @@ const handler = middy(co.wrap(function* (event, context, cb) {
         cb(null, response.badRequest({ message: "Invalid restaurantName name" }))
     }
 
-    const userEmail = _.get(event, 'requestContext.authorizer.claims.email')
+    const userEmail = "petar.korudzhiev@gmail.com" // _.get(event, 'requestContext.authorizer.claims.email')
 
     if (!userEmail) {
         log.error('unauthorized request, user email is not provided')
@@ -56,7 +56,8 @@ const handler = middy(co.wrap(function* (event, context, cb) {
         StreamName: context.order_events_stream
     }
 
-    yield kinesis.putRecord(kinesisReq);
+    yield cloudwatch.trackExecTime("KinesisPutRecordLatency", 
+        () => kinesis.putRecord(kinesisReq))
 
     log.debug(`published event into Kinesis`, { eventName: 'order_placed' })
 

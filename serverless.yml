@@ -38,9 +38,10 @@ functions:
       - http:
           path: /orders
           method: post  
-          authorizer:
-            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/${ssm:/order-system/${self:custom.stage}/cognito_user_pool_id}        
+          #authorizer:
+          #  arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/${ssm:/order-system/${self:custom.stage}/cognito_user_pool_id}        
     environment:        
+      async_metrics: true
     iamRoleStatements:
       - Effect: Allow
         Action: kinesis:PutRecord

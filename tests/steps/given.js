@@ -18,7 +18,7 @@ const an_authenticated_user = co.wrap(function* () {
 
   const firstName = chance.first()
   const lastName  = chance.last()
-  const username  = `test-${chance.string({length: 8})}`
+  const username  = `test-${chance.string({length: 2})}`
   const password  = random_password()
   const email     = `${firstName}.${lastName}@test.com`
 
