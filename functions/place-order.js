@@ -6,14 +6,16 @@ import * as cloudwatch            from '../lib/cloudwatch'
 import _                          from 'lodash'
 import ch                         from 'chance'
 import middy                      from 'middy'
+import { ssm }                    from 'middy/middlewares'
+import co                         from 'co'
 import captureCorrelationIds      from '../middleware/capture-correlation-ids'
 
 const chance = ch.Chance();
-const streamName = process.env.order_events_stream;
+const STAGE     = process.env.STAGE;
 
-const handler = middy(async (event, context) => {
+const handler = middy(co.wrap(function* (event, context, cb) {
     if (!event.body) {
-        return response.badRequest({ message: "Invalid request" })
+        cb(null, response.badRequest({ message: "Invalid request" }))
     }
 
     const request = JSON.parse(event.body)
@@ -21,7 +23,7 @@ const handler = middy(async (event, context) => {
     log.debug(`request body is valid JSON`, { requestBody: event.body })
 
     if (!request.restaurantName) {
-        return response.badRequest({ message: "Invalid restaurantName name" })
+        cb(null, response.badRequest({ message: "Invalid restaurantName name" }))
     }
 
     const userEmail = _.get(event, 'requestContext.authorizer.claims.email')
@@ -29,7 +31,7 @@ const handler = middy(async (event, context) => {
     if (!userEmail) {
         log.error('unauthorized request, user email is not provided')
     
-        return response.unAuthorized({ message: "unauthorized" })
+        cb(null, response.unAuthorized({ message: "unauthorized" }))
     }    
 
     const restaurantName = request.restaurantName;
@@ -51,14 +53,22 @@ const handler = middy(async (event, context) => {
     const kinesisReq = {
         Data: JSON.stringify(data), // the SDK would base64 encode this for us
         PartitionKey: orderId,
-        StreamName: streamName
+        StreamName: context.order_events_stream
     }
 
-    await kinesis.putRecord(kinesisReq);
+    yield kinesis.putRecord(kinesisReq);
 
     log.debug(`published event into Kinesis`, { eventName: 'order_placed' })
 
-    return response.success({ orderId })
-}).use(captureCorrelationIds({ sampleDebugLogRate: 0.01 }))
+    cb(null, response.success({ orderId }))
+})).use(captureCorrelationIds({ sampleDebugLogRate: 0.01 }))
+   .use(ssm({
+        cache: true,
+        cacheExpiryInMillis: 3 * 60 * 1000, // 3 mins
+        setToContext: true,
+        names: {
+            order_events_stream: `/order-system/${STAGE}/order_events_stream`
+        }
+    }))
 
 export { handler }  
